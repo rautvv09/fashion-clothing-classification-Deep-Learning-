@@ -8,6 +8,13 @@ const getBaseURL = () => {
     }
     return url.endsWith("/api") ? url : `${url}/api`;
   }
+
+  // Auto-detect Render deployment URL if VITE_API_URL was omitted during static build
+  if (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")) {
+    const backendHost = window.location.hostname.replace("-frontend", "-backend");
+    return `https://${backendHost}/api`;
+  }
+
   return "http://localhost:5000/api";
 };
 

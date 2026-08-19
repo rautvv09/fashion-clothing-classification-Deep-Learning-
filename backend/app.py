@@ -6,7 +6,7 @@ from services.predictor import predict_image
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS"])
 
 
 @app.route("/", methods=["GET"])
@@ -30,8 +30,10 @@ import io
 import traceback
 from PIL import Image
 
-@app.route("/api/predict", methods=["POST"])
+@app.route("/api/predict", methods=["POST", "OPTIONS"])
 def predict():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
 
     try:
 
