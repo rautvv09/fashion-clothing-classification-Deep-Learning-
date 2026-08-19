@@ -34,22 +34,58 @@ class CustomBatchNormalization(tf.keras.layers.BatchNormalization):
         super().__init__(**kwargs)
 
 
+def build_architecture():
+    """Rebuilds exact CNN architecture natively to avoid Keras deserialization errors."""
+    return tf.keras.models.Sequential([
+        tf.keras.layers.Input(shape=(28, 28, 1)),
+
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation="relu"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(10, activation="softmax")
+    ])
+
+
 def get_model_and_classes():
     global _model, _class_names
 
     if _model is None:
         try:
-            _model = tf.keras.models.load_model(
-                MODEL_PATH,
-                custom_objects={"BatchNormalization": CustomBatchNormalization}
-            )
-        except Exception as err:
-            print(f"Warning: Standard load_model failed ({err}), attempting fallback load...")
-            _model = tf.keras.models.load_model(
-                MODEL_PATH,
-                compile=False,
-                custom_objects={"BatchNormalization": CustomBatchNormalization}
-            )
+            # Primary method: Rebuild architecture and load weights directly (100% robust across Keras versions)
+            _model = build_architecture()
+            _model.load_weights(MODEL_PATH)
+            print("Loaded trained model weights into native CNN architecture.")
+        except Exception as weight_err:
+            print(f"Warning: load_weights failed ({weight_err}), falling back to custom load_model...")
+            try:
+                _model = tf.keras.models.load_model(
+                    MODEL_PATH,
+                    custom_objects={"BatchNormalization": CustomBatchNormalization}
+                )
+            except Exception as err:
+                _model = tf.keras.models.load_model(
+                    MODEL_PATH,
+                    compile=False,
+                    custom_objects={"BatchNormalization": CustomBatchNormalization}
+                )
 
     if _class_names is None:
         with open(CLASS_NAMES_PATH, "r") as file:
