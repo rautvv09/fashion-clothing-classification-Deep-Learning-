@@ -25,11 +25,31 @@ _model = None
 _class_names = None
 
 
+# Custom BatchNormalization subclass to pop legacy renorm kwargs in Keras 3
+class CustomBatchNormalization(tf.keras.layers.BatchNormalization):
+    def __init__(self, **kwargs):
+        kwargs.pop("renorm", None)
+        kwargs.pop("renorm_clipping", None)
+        kwargs.pop("renorm_momentum", None)
+        super().__init__(**kwargs)
+
+
 def get_model_and_classes():
     global _model, _class_names
 
     if _model is None:
-        _model = tf.keras.models.load_model(MODEL_PATH)
+        try:
+            _model = tf.keras.models.load_model(
+                MODEL_PATH,
+                custom_objects={"BatchNormalization": CustomBatchNormalization}
+            )
+        except Exception as err:
+            print(f"Warning: Standard load_model failed ({err}), attempting fallback load...")
+            _model = tf.keras.models.load_model(
+                MODEL_PATH,
+                compile=False,
+                custom_objects={"BatchNormalization": CustomBatchNormalization}
+            )
 
     if _class_names is None:
         with open(CLASS_NAMES_PATH, "r") as file:
