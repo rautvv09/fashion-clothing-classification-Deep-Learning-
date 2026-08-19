@@ -1,0 +1,90 @@
+# ================================
+# Python
+# ================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Python environment files
+.env
+.env.*
+
+# ================================
+# TensorFlow / ML
+# ================================
+
+# Training logs
+logs/
+*.log
+
+# TensorBoard
+runs/
+
+# Checkpoints
+checkpoints/
+*.ckpt
+*.h5
+
+# ================================
+# Dataset
+# ================================
+
+dataset/
+datasets/
+raw_dataset/
+
+# Fashion-MNIST downloaded files
+*.gz
+*.idx
+*.npz
+
+# ================================
+# React / Node
+# ================================
+
+node_modules/
+
+# React/Vite production build
+frontend/dist/
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ================================
+# IDE
+# ================================
+
+.vscode/
+.idea/
+
+# ================================
+# OS
+# ================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ================================
+# Temporary files
+# ================================
+
+*.tmp
+*.temp
+*.bak
+
+# ================================
+# Testing uploads
+# ================================
+
+uploads/
+testing/test_images/
