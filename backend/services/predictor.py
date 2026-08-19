@@ -21,20 +21,26 @@ CLASS_NAMES_PATH = os.path.join(
 )
 
 
-# Load model once when server starts
-
-model = tf.keras.models.load_model(
-    MODEL_PATH
-)
+_model = None
+_class_names = None
 
 
-# Load class names
+def get_model_and_classes():
+    global _model, _class_names
 
-with open(CLASS_NAMES_PATH, "r") as file:
-    class_names = json.load(file)
+    if _model is None:
+        _model = tf.keras.models.load_model(MODEL_PATH)
+
+    if _class_names is None:
+        with open(CLASS_NAMES_PATH, "r") as file:
+            _class_names = json.load(file)
+
+    return _model, _class_names
 
 
 def predict_image(image):
+
+    model, class_names = get_model_and_classes()
 
     processed_image = preprocess_image(
         image
