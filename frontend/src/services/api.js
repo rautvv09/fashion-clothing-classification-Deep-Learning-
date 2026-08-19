@@ -2,8 +2,10 @@ import axios from "axios";
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
-    // Ensure standard formatting without trailing slash issues
-    const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+    let url = import.meta.env.VITE_API_URL.trim().replace(/\/$/, "");
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `https://${url}`;
+    }
     return url.endsWith("/api") ? url : `${url}/api`;
   }
   return "http://localhost:5000/api";
