@@ -1,8 +1,13 @@
 import axios from "axios";
 
 const getBaseURL = () => {
-  if (import.meta.env.VITE_API_URL) {
-    let url = import.meta.env.VITE_API_URL.trim().replace(/\/$/, "");
+  let envUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim() : "";
+
+  if (envUrl) {
+    let url = envUrl.replace(/\/$/, "");
+    if (!url.includes(".")) {
+      url = `${url}.onrender.com`;
+    }
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
       url = `https://${url}`;
     }
