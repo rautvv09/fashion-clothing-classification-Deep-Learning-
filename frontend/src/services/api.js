@@ -24,7 +24,7 @@ const API = axios.create({
 
 export const checkBackendHealth = async () => {
   try {
-    const response = await API.get("/health", { timeout: 4000 });
+    const response = await API.get("/health", { timeout: 10000 });
     return response.data && response.data.status === "healthy";
   } catch (err) {
     return false;
@@ -43,6 +43,7 @@ export const predictFashion = async (image) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 60000, // 60 seconds tolerance for free-tier spin-up
     }
   );
 

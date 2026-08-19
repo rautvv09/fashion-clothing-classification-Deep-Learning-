@@ -2,11 +2,14 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from services.predictor import predict_image
+from services.predictor import predict_image, preload_model_in_background
 
 app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS"])
+
+# Asynchronously pre-warm the model on server startup
+preload_model_in_background()
 
 
 @app.route("/", methods=["GET"])

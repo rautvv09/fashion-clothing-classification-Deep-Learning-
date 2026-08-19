@@ -38,6 +38,20 @@ def get_model_and_classes():
     return _model, _class_names
 
 
+import threading
+
+def preload_model_in_background():
+    def _loader():
+        try:
+            get_model_and_classes()
+            print("AI Model pre-warmed and ready in memory.")
+        except Exception as e:
+            print(f"Error pre-warming model: {e}")
+
+    thread = threading.Thread(target=_loader, daemon=True)
+    thread.start()
+
+
 def predict_image(image):
 
     model, class_names = get_model_and_classes()
