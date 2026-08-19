@@ -1,22 +1,14 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Sun, Moon, Server, Activity } from "lucide-react";
-import axios from "axios";
+import { checkBackendHealth } from "../services/api";
 
 function Navbar({ theme, onToggleTheme }) {
   const [backendOnline, setBackendOnline] = useState(null);
 
   useEffect(() => {
     const checkHealth = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/health", { timeout: 3000 });
-        if (res.data && res.data.status === "healthy") {
-          setBackendOnline(true);
-        } else {
-          setBackendOnline(false);
-        }
-      } catch (err) {
-        setBackendOnline(false);
-      }
+      const isHealthy = await checkBackendHealth();
+      setBackendOnline(isHealthy);
     };
 
     checkHealth();
@@ -42,7 +34,7 @@ function Navbar({ theme, onToggleTheme }) {
         </ul>
 
         <div className="nav-actions">
-          <div className="status-badge" title={backendOnline ? "Backend Flask API active at localhost:5000" : "Cannot reach localhost:5000"}>
+          <div className="status-badge" title={backendOnline ? "Backend Flask API is Online" : "Backend Flask API is Offline"}>
             <span className={`status-dot ${backendOnline ? "" : "offline"}`} />
             <span>{backendOnline === null ? "Connecting..." : backendOnline ? "API Online" : "API Offline"}</span>
           </div>

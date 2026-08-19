@@ -15,6 +15,15 @@ const API = axios.create({
   baseURL: getBaseURL(),
 });
 
+export const checkBackendHealth = async () => {
+  try {
+    const response = await API.get("/health", { timeout: 4000 });
+    return response.data && response.data.status === "healthy";
+  } catch (err) {
+    return false;
+  }
+};
+
 export const predictFashion = async (image) => {
   const formData = new FormData();
 
