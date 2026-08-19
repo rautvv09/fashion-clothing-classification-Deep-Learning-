@@ -1,7 +1,16 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    // Ensure standard formatting without trailing slash issues
+    const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+    return url.endsWith("/api") ? url : `${url}/api`;
+  }
+  return "http://localhost:5000/api";
+};
+
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: getBaseURL(),
 });
 
 export const predictFashion = async (image) => {

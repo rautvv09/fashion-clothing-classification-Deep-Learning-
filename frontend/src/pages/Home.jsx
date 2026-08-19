@@ -44,7 +44,7 @@ function Home() {
       console.error(err);
       setError(
         err.response?.data?.error ||
-          "Unable to connect to the prediction server. Please ensure the Flask backend is running on http://localhost:5000."
+          "Unable to connect to the prediction server. If deploying on Render, please allow up to 50 seconds for the free tier instance to spin up."
       );
     } finally {
       setLoading(false);
