@@ -1,28 +1,30 @@
 import os
 import json
+import threading
 import numpy as np
 import tensorflow as tf
 
 from utils.image_processor import preprocess_image
 
 
-MODEL_PATH = os.path.join(
+MODEL_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__),
     "..",
     "models",
     "fashion_cnn.keras"
-)
+))
 
-CLASS_NAMES_PATH = os.path.join(
+CLASS_NAMES_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__),
     "..",
     "models",
     "class_names.json"
-)
+))
 
 
 _model = None
 _class_names = None
+_model_lock = threading.Lock()
 
 
 # Custom BatchNormalization subclass to pop legacy renorm kwargs in Keras 3
@@ -67,34 +69,34 @@ def build_architecture():
 def get_model_and_classes():
     global _model, _class_names
 
-    if _model is None:
-        try:
-            # Primary method: Rebuild architecture and load weights directly (100% robust across Keras versions)
-            _model = build_architecture()
-            _model.load_weights(MODEL_PATH)
-            print("Loaded trained model weights into native CNN architecture.")
-        except Exception as weight_err:
-            print(f"Warning: load_weights failed ({weight_err}), falling back to custom load_model...")
-            try:
-                _model = tf.keras.models.load_model(
-                    MODEL_PATH,
-                    custom_objects={"BatchNormalization": CustomBatchNormalization}
-                )
-            except Exception as err:
-                _model = tf.keras.models.load_model(
-                    MODEL_PATH,
-                    compile=False,
-                    custom_objects={"BatchNormalization": CustomBatchNormalization}
-                )
+    if _model is None or _class_names is None:
+        with _model_lock:
+            if _model is None:
+                try:
+                    # Primary method: Rebuild architecture and load weights directly
+                    _model = build_architecture()
+                    _model.load_weights(MODEL_PATH)
+                    print(f"Loaded trained model weights from {MODEL_PATH} into native CNN architecture.")
+                except Exception as weight_err:
+                    print(f"Warning: load_weights failed ({weight_err}), falling back to tf.keras.models.load_model...")
+                    try:
+                        _model = tf.keras.models.load_model(
+                            MODEL_PATH,
+                            custom_objects={"BatchNormalization": CustomBatchNormalization}
+                        )
+                    except Exception as err:
+                        _model = tf.keras.models.load_model(
+                            MODEL_PATH,
+                            compile=False,
+                            custom_objects={"BatchNormalization": CustomBatchNormalization}
+                        )
 
-    if _class_names is None:
-        with open(CLASS_NAMES_PATH, "r") as file:
-            _class_names = json.load(file)
+            if _class_names is None:
+                with open(CLASS_NAMES_PATH, "r") as file:
+                    _class_names = json.load(file)
 
     return _model, _class_names
 
-
-import threading
 
 def preload_model_in_background():
     def _loader():
@@ -109,29 +111,15 @@ def preload_model_in_background():
 
 
 def predict_image(image):
-
     model, class_names = get_model_and_classes()
 
-    processed_image = preprocess_image(
-        image
-    )
+    processed_image = preprocess_image(image)
 
-    predictions = model(
-        processed_image,
-        training=False
-    ).numpy()[0]
+    predictions = model(processed_image, training=False).numpy()[0]
 
-    predicted_index = int(
-        np.argmax(predictions)
-    )
-
-    predicted_class = class_names[
-        predicted_index
-    ]
-
-    confidence = float(
-        predictions[predicted_index]
-    )
+    predicted_index = int(np.argmax(predictions))
+    predicted_class = class_names[predicted_index]
+    confidence = float(predictions[predicted_index])
 
     probabilities = {
         class_names[i]: float(predictions[i])

@@ -45,7 +45,7 @@ If you prefer to configure services manually on Render instead of using Blueprin
    - **Region**: Choose the closest location
    - **Branch**: `main`
    - **Build Command**: `pip install -r backend/requirements.txt`
-   - **Start Command**: `cd backend && gunicorn app:app`
+   - **Start Command**: `cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app`
    - **Plan**: `Free`
 4. Click **Create Web Service**.
 5. Once deployed, **copy your backend URL** (e.g., `https://fashion-classifier-backend.onrender.com`).

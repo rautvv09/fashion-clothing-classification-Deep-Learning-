@@ -39,13 +39,38 @@ function Home() {
       setResult(null);
 
       const data = await predictFashion(image);
-      setResult(data);
+      if (data && data.success) {
+        setResult(data);
+      } else if (data && data.error) {
+        setError(data.error);
+      } else {
+        setResult(data);
+      }
     } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.error ||
-          "Unable to connect to the prediction server. If deploying on Render, please allow up to 50 seconds for the free tier instance to spin up."
-      );
+      console.error("Prediction failed:", err);
+
+      let errorMsg = "";
+      if (err.response) {
+        // Response received from server with error status code (e.g. 400, 500)
+        const data = err.response.data;
+        if (data && typeof data === "object" && data.error) {
+          errorMsg = data.error;
+        } else if (data && typeof data === "object" && data.message) {
+          errorMsg = data.message;
+        } else if (typeof data === "string" && data.trim()) {
+          errorMsg = data;
+        } else {
+          errorMsg = `Server returned status ${err.response.status}: ${err.response.statusText || "Error"}`;
+        }
+      } else if (err.request) {
+        // Request made but no response received (CORS error, network error, or spin-up timeout)
+        errorMsg =
+          "Unable to connect to the prediction server. If deploying on Render free tier, the backend instance may take up to 50 seconds to spin up on initial request. Please wait a moment and try again.";
+      } else {
+        errorMsg = err.message || "An error occurred while sending the prediction request.";
+      }
+
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
